@@ -9,9 +9,7 @@ import (
 func (app *App) StatsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	app.urls.mx.RLock()
-	jsonRes, err := json.Marshal(app.urls.m)
-	app.urls.mx.RUnlock()
+	jsonRes, err := json.Marshal(app.urls.stats.GetStats())
 
 	if err != nil {
 		http.Error(w, "внутренняя ошибка", 500)
@@ -25,6 +23,8 @@ func (app *App) MinHandler(w http.ResponseWriter, r *http.Request) {
 	res := make(map[string]time.Duration)
 	url, t := app.urls.minMax.GetMin()
 	res[url] = t
+
+	app.urls.stats.IncrementMin()
 
 	w.Header().Set("Content-Type", "application/json")
 	jsonRes, err := json.Marshal(res)
@@ -40,6 +40,8 @@ func (app *App) MaxHandler(w http.ResponseWriter, r *http.Request) {
 	url, t := app.urls.minMax.GetMax()
 	res[url] = t
 
+	app.urls.stats.IncrementMax()
+
 	w.Header().Set("Content-Type", "application/json")
 	jsonRes, err := json.Marshal(res)
 	if err != nil {
@@ -50,6 +52,8 @@ func (app *App) MaxHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) UrlHandler(w http.ResponseWriter, r *http.Request) {
+	app.urls.stats.IncrementUrl()
+
 	url := r.URL.Query().Get("url")
 	res := make(map[string]time.Duration)
 	t, ok := app.urls.Load(url)

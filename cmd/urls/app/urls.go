@@ -15,11 +15,20 @@ type minMax struct {
 	max    time.Duration
 }
 
+type stats struct {
+	mx sync.RWMutex
+
+	min int
+	max int
+	url int
+}
+
 type urls struct {
 	mx sync.RWMutex
 	m  urlsMap
 
 	minMax minMax
+	stats  stats
 }
 
 func (u *urls) Load(key string) (time.Duration, bool) {
@@ -76,4 +85,38 @@ func (m *minMax) SetMax(url string, t time.Duration) {
 
 	m.max = t
 	m.maxUrl = url
+}
+
+func (s *stats) IncrementMin() {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+
+	s.min++
+}
+
+func (s *stats) IncrementMax() {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+
+	s.max++
+}
+
+func (s *stats) IncrementUrl() {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+
+	s.url++
+}
+
+func (s *stats) GetStats() map[string]int {
+	s.mx.RLock()
+	defer s.mx.RUnlock()
+
+	res := make(map[string]int)
+
+	res["/api/min"] = s.min
+	res["/api/max"] = s.max
+	res["/api"] = s.url
+
+	return res
 }

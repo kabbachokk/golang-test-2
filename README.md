@@ -37,5 +37,5 @@ http://localhost:8081/api?url=google.ca
 
 ```Json
 http://localhost:8081/api/stats
-{"google.ca":295681300, "yahoo.co.jp":95681300}
+{"/api":0,"/api/max":4,"/api/min":3}
 ```
